@@ -26,10 +26,10 @@ class ConnMysql(object):
         """
 
         # 建立连接
-        engine = create_engine("mysql+pymysql://{}:{}@{}:{}/{}?charset={}".format(
+        self.engine = create_engine("mysql+pymysql://{}:{}@{}:{}/{}?charset={}".format(
             username, password, host, port, database, 'utf8'))
 
-        self.con = engine.connect()
+        self.con = self.engine.connect()
 
     @retry(tries=3, delay=2)
     def read_table(self, sql):
@@ -44,5 +44,4 @@ class ConnMysql(object):
         # 读取MySQL数据
         df_data = pd.read_sql(sql, self.con)
         self.con.close()
-
         return df_data
