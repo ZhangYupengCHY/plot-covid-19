@@ -488,6 +488,3 @@ def folder_update_file(folder, file_sign_word=None, refresh=1):
     return new_file
 
 
-
-if __name__ == '__main__':
-    pass
