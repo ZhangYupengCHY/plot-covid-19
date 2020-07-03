@@ -487,4 +487,3 @@ def folder_update_file(folder, file_sign_word=None, refresh=1):
                 file_time != files_modify_time.get(file, None)]
     return new_file
 
-
