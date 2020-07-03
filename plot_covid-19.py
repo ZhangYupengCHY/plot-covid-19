@@ -539,7 +539,7 @@ def plot_covid_19_world_situation(world_data):
     del us_day_confirmed_data
     gc.collect()
     us_day_confirmed_grouped_x = pd.to_datetime(us_day_confirmed_grouped['Date'],dayfirst=False)
-    us_day_confirmed_grouped_x = list(us_day_confirmed_grouped_x.apply(lambda x:x.date()))
+    us_day_confirmed_grouped_x = list(us_day_confirmed_grouped_x.apply(lambda x:x.date))
     us_day_confirmed_grouped_y = us_day_confirmed_grouped['Difference'].tolist()
     total_confirmed_num = sum(us_day_confirmed_grouped_y)
     # 绘制折线图
