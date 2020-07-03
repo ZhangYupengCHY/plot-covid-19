@@ -24,7 +24,7 @@ def run_time(func):
         start_time = datetime.now()
         result = func(*args, **kwargs)
         end_time = datetime.now()
-        print(f'函数{func.__name__}运行时长:{end_time - start_time}')
+        print(f'函数{func.__name__}花费:{end_time - start_time}')
         return result
 
     return wrapper
