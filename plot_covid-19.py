@@ -98,6 +98,7 @@ def db_download_covid_19_data_primary_country():
         # 从pkl文件中加载数据
         pkl_path = r"D:\pyecharts\covid_19.pkl"
         covid_19_data = process_files.read_pickle_2_df(pkl_path)
+
     except:
         # 连接数据库获取covid_19的数据
         conn_mysql = conn_db.ConnMysql()
@@ -410,6 +411,7 @@ def init_data(data):
     data['Country_Region'].replace(
         {'US': 'United States', 'Singapore': 'Singapore Rep.', 'Dominica': 'Dominican Rep.', 'Korea, South': 'Korea'},
         inplace=True)
+    # 无法正确识别的国家或地区(不在国家字典中)
     country = set(data['Country_Region'].values)
     wrong_name = country - set(en_name)
     print(wrong_name)
@@ -531,15 +533,14 @@ def plot_covid_19_world_situation(world_data):
         # 添加图形系列
         pages.add(map)
 
-    # 绘制美国和中国每日确诊病例趋势线
+    # 绘制美国和中国每日新增确诊病例趋势线
     us_day_confirmed_data = world_data[
         (world_data['Country_Region'] == 'United States') & (world_data['Case_Type'] == 'Confirmed')]
     us_day_confirmed_grouped = us_day_confirmed_data[['Date', 'Difference']].groupby(['Date']).agg(
         {'Difference': 'sum'}).reset_index()
-    del us_day_confirmed_data
     gc.collect()
     us_day_confirmed_grouped_x = pd.to_datetime(us_day_confirmed_grouped['Date'],dayfirst=False)
-    us_day_confirmed_grouped_x = list(us_day_confirmed_grouped_x.apply(lambda x:x.date))
+    us_day_confirmed_grouped_x = list(us_day_confirmed_grouped_x.apply(lambda x:x.date()))
     us_day_confirmed_grouped_y = us_day_confirmed_grouped['Difference'].tolist()
     total_confirmed_num = sum(us_day_confirmed_grouped_y)
     # 绘制折线图
@@ -550,8 +551,25 @@ def plot_covid_19_world_situation(world_data):
     line.add_yaxis(series_name='美国确诊病例趋势', y_axis=us_day_confirmed_grouped_y)
 
     # 添加折线图配置
-    line.set_global_opts(title_opts=opts.TitleOpts(title='美国确诊病例趋势', subtitle=f'美国累计确诊病例{total_confirmed_num}'))
+    line.set_global_opts(title_opts=opts.TitleOpts(title='美国新增确诊病例趋势', subtitle=f'美国累计确诊病例{total_confirmed_num}'))
 
+    pages.add(line)
+
+    # 绘制美国累计确诊病例
+    us_add_confirmed_grouped = us_day_confirmed_data[['Date', 'Cases']].groupby(['Date']).agg(
+        {'Cases': 'sum'}).reset_index()
+    us_add_confirmed_grouped_x = pd.to_datetime(us_add_confirmed_grouped['Date'], dayfirst=False)
+    us_add_confirmed_grouped_x = list(us_add_confirmed_grouped_x.apply(lambda x: x.date()))
+    us_add_confirmed_grouped_y = us_add_confirmed_grouped['Cases'].tolist()
+    # 绘制折线图
+    line = Line(init_opts=opts.InitOpts())
+
+    # 添加X,Y数据
+    line.add_xaxis(xaxis_data=us_add_confirmed_grouped_x)
+    line.add_yaxis(series_name='美国累计确诊病例趋势', y_axis=us_add_confirmed_grouped_y)
+
+    # 添加折线图配置
+    line.set_global_opts(title_opts=opts.TitleOpts(title='美国累计确诊病例趋势'))
     pages.add(line)
     # 输出pages
     pages.render('全球新冠疫情情况.html')
