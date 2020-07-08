@@ -458,29 +458,38 @@ def plot_covid_19_world_situation(world_data):
         {'Difference': 'sum'}).reset_index()
 
     # 四种指标字典
+    # express_dict = {
+    #     'day_confirmed':
+    #         {
+    #             'data': now_date_confirmed_info,
+    #             'case_type': 'confirmed',
+    #             'date_type': 'day',
+    #         },
+    #     'day_deaths':
+    #         {
+    #             'data': now_date_deaths_info,
+    #             'case_type': 'deaths',
+    #             'date_type': 'day',
+    #         },
+    #     'total_confirmed':
+    #         {
+    #             'data': total_confirmed_info,
+    #             'case_type': 'confirmed',
+    #             'date_type': 'total',
+    #         },
+    #     'total_deaths':
+    #         {
+    #             'data': total_deaths_info,
+    #             'case_type': 'deaths',
+    #             'date_type': 'total',
+    #         },
+    # }
+
     express_dict = {
-        'day_confirmed':
-            {
-                'data': now_date_confirmed_info,
-                'case_type': 'confirmed',
-                'date_type': 'day',
-            },
-        'day_deaths':
-            {
-                'data': now_date_deaths_info,
-                'case_type': 'deaths',
-                'date_type': 'day',
-            },
         'total_confirmed':
             {
                 'data': total_confirmed_info,
                 'case_type': 'confirmed',
-                'date_type': 'total',
-            },
-        'total_deaths':
-            {
-                'data': total_deaths_info,
-                'case_type': 'deaths',
                 'date_type': 'total',
             },
     }
@@ -502,7 +511,7 @@ def plot_covid_19_world_situation(world_data):
     # 绘制地图
     for plot_name, plot_data in express_dict.items():
         # 初始化地图
-        map = Map(init_opts=opts.InitOpts())
+        map = Map(init_opts=opts.InitOpts(width='1000px', height='800px', bg_color="#000f1a"))
 
         # 加载数据:其中maptype可以初始化地图类型,而geo中需要单独设置
         if plot_data['case_type'] == 'confirmed':
@@ -515,33 +524,40 @@ def plot_covid_19_world_situation(world_data):
             date_type = '累计'
         map.add(series_name=f'全球{last_date}{date_type}{case_name}人数分布', data_pair=plot_data['data_pair'],
                 maptype='world',
-                label_opts=opts.LabelOpts(is_show=False))
+                label_opts=opts.LabelOpts(is_show=True, color='white'),
+                # itemstyle_opts是设置每个项目中标注点的样式 area_color是设置项目的背景色,color是设置项目的点的颜色
+                itemstyle_opts=opts.ItemStyleOpts(area_color='#2a2a28', color="#d3d307"))
 
         # 配置
         map.set_global_opts(
             title_opts=opts.TitleOpts(title=f'全球{last_date}{date_type}{case_name}人数分布',
                                       subtitle=f"全球新增确诊:{plot_data['total_num']}"),
-            # 视觉配置
-            visualmap_opts=opts.VisualMapOpts(
-                type_='color',
-                min_=0,
-                max_=plot_data['max_num'],
-            ),
-            tooltip_opts=opts.TooltipOpts(is_show=True)
+            # # 视觉配置
+            # visualmap_opts=opts.VisualMapOpts(
+            #     type_='color',
+            #     min_=0,
+            #     max_=plot_data['max_num'],
+            # ),
+            # tooltip_opts=opts.TooltipOpts(is_show=True)
+            # 图形配置
         )
 
         # 添加图形系列
         pages.add(map)
 
+    """
     # 绘制美国和中国每日新增确诊病例趋势线
     us_day_confirmed_data = world_data[
         (world_data['Country_Region'] == 'United States') & (world_data['Case_Type'] == 'Confirmed')]
     us_day_confirmed_grouped = us_day_confirmed_data[['Date', 'Difference']].groupby(['Date']).agg(
         {'Difference': 'sum'}).reset_index()
     gc.collect()
-    us_day_confirmed_grouped_x = pd.to_datetime(us_day_confirmed_grouped['Date'],dayfirst=False)
-    us_day_confirmed_grouped_x = list(us_day_confirmed_grouped_x.apply(lambda x:x.date()))
-    us_day_confirmed_grouped_y = us_day_confirmed_grouped['Difference'].tolist()
+    us_day_confirmed_grouped_x = pd.to_datetime(us_day_confirmed_grouped['Date'], dayfirst=False)
+    us_day_confirmed_grouped_x = list(us_day_confirmed_grouped_x.apply(lambda x: x.date()))
+    us_day_confirmed_grouped_dict = {date: confirmed for date, confirmed in
+                                     zip(us_day_confirmed_grouped_x, list(us_day_confirmed_grouped['Difference']))}
+    us_day_confirmed_grouped_x = sorted(us_day_confirmed_grouped_x)
+    us_day_confirmed_grouped_y = [us_day_confirmed_grouped_dict[date] for date in us_day_confirmed_grouped_x]
     total_confirmed_num = sum(us_day_confirmed_grouped_y)
     # 绘制折线图
     line = Line(init_opts=opts.InitOpts())
@@ -560,7 +576,10 @@ def plot_covid_19_world_situation(world_data):
         {'Cases': 'sum'}).reset_index()
     us_add_confirmed_grouped_x = pd.to_datetime(us_add_confirmed_grouped['Date'], dayfirst=False)
     us_add_confirmed_grouped_x = list(us_add_confirmed_grouped_x.apply(lambda x: x.date()))
-    us_add_confirmed_grouped_y = us_add_confirmed_grouped['Cases'].tolist()
+    us_add_confirmed_grouped_dict = {date: case_num for date, case_num in
+                                     zip(us_add_confirmed_grouped_x, list(us_add_confirmed_grouped['Cases']))}
+    us_add_confirmed_grouped_x = sorted(us_add_confirmed_grouped_x)
+    us_add_confirmed_grouped_y = [us_add_confirmed_grouped_dict[date] for date in us_add_confirmed_grouped_x]
     # 绘制折线图
     line = Line(init_opts=opts.InitOpts())
 
@@ -571,6 +590,9 @@ def plot_covid_19_world_situation(world_data):
     # 添加折线图配置
     line.set_global_opts(title_opts=opts.TitleOpts(title='美国累计确诊病例趋势'))
     pages.add(line)
+    
+    """
+
     # 输出pages
     pages.render('全球新冠疫情情况.html')
 
